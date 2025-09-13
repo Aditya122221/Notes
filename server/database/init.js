@@ -4,9 +4,6 @@ import Tenant from '../models/Tenant.js';
 import User from '../models/User.js';
 import Note from '../models/Note.js';
 
-// MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/notes_saas';
-
 export { Tenant, User, Note };
 
 let isInitialized = false;
@@ -19,7 +16,7 @@ export async function initializeDatabase() {
 
   try {
     // Connect to MongoDB
-    await mongoose.connect(MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB successfully');
 
     // Create indexes for better performance (ignore errors if they already exist)

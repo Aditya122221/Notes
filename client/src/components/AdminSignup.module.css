@@ -215,6 +215,13 @@
     background: rgba(102, 126, 234, 0.1);
 }
 
+.helpText {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+    font-style: italic;
+}
+
 .error {
     display: flex;
     align-items: center;
@@ -284,79 +291,6 @@
     }
 }
 
-.divider {
-    position: relative;
-    text-align: center;
-    margin: 32px 0;
-}
-
-.divider::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: #e5e7eb;
-}
-
-.divider span {
-    background: rgba(255, 255, 255, 0.95);
-    color: #9ca3af;
-    padding: 0 20px;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.quickLogin {
-    margin-bottom: 32px;
-}
-
-.quickLogin h4 {
-    color: #374151;
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0 0 16px 0;
-    text-align: center;
-}
-
-.testButtons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.testButton {
-    background: #f8fafc;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 16px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
-}
-
-.testButton:hover {
-    border-color: #667eea;
-    background: #f0f4ff;
-    transform: translateY(-1px);
-}
-
-.testButtonText {
-    display: block;
-    color: #374151;
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 4px;
-}
-
-.testButtonSubtext {
-    display: block;
-    color: #9ca3af;
-    font-size: 12px;
-    font-family: monospace;
-}
-
 .footer {
     text-align: center;
     padding-top: 24px;
@@ -379,13 +313,6 @@
 .link:hover {
     color: #5a6fd8;
     text-decoration: none;
-}
-
-.helpText {
-    font-size: 12px;
-    color: #9ca3af;
-    margin-top: 8px;
-    font-style: italic;
 }
 
 /* Responsive Design */
@@ -411,10 +338,6 @@
 
     .brand h1 {
         font-size: 36px;
-    }
-
-    .testButtons {
-        grid-template-columns: 1fr;
     }
 }
 

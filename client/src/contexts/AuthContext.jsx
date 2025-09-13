@@ -56,9 +56,9 @@ export function AuthProvider({ children }) {
         }
     };
 
-    const register = async (email, password, tenantSlug, role = 'member') => {
+    const adminSignup = async (email, password, companyName) => {
         try {
-            const response = await apiService.register(email, password, tenantSlug, role);
+            const response = await apiService.adminSignup(email, password, companyName);
             const { token, user: userData } = response;
 
             localStorage.setItem('token', token);
@@ -69,7 +69,19 @@ export function AuthProvider({ children }) {
         } catch (error) {
             return {
                 success: false,
-                error: error.response?.data?.error || 'Registration failed'
+                error: error.response?.data?.error || 'Failed to create company'
+            };
+        }
+    };
+
+    const inviteUser = async (email, password, role = 'member') => {
+        try {
+            const response = await apiService.inviteUser(email, password, role);
+            return { success: true, data: response };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.error || 'Failed to invite user'
             };
         }
     };
@@ -84,7 +96,8 @@ export function AuthProvider({ children }) {
         user,
         loading,
         login,
-        register,
+        adminSignup,
+        inviteUser,
         logout
     };
 

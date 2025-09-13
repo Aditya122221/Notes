@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
-import Register from './components/Register';
+import AdminSignup from './components/AdminSignup';
 import Dashboard from './components/Dashboard';
 import './App.css';
 
@@ -22,7 +22,7 @@ function App() {
         <div className="app">
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/signup" element={<AdminSignup />} />
             <Route
               path="/dashboard"
               element={

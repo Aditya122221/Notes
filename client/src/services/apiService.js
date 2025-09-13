@@ -53,11 +53,19 @@ class ApiService {
         return response.data;
     }
 
-    async register(email, password, tenantSlug, role = 'member') {
-        const response = await this.api.post('/auth/register', {
+    async adminSignup(email, password, companyName) {
+        const response = await this.api.post('/auth/signup', {
             email,
             password,
-            tenantSlug,
+            companyName
+        });
+        return response.data;
+    }
+
+    async inviteUser(email, password, role = 'member') {
+        const response = await this.api.post('/auth/invite', {
+            email,
+            password,
             role
         });
         return response.data;

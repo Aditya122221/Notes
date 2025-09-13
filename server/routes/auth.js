@@ -6,9 +6,6 @@ import { User, Tenant } from '../database/init.js';
 
 const router = express.Router();
 
-// JWT secret (in production, use environment variable)
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
-
 // Validation schemas
 const loginSchema = Joi.object({
     email: Joi.string().email({ tlds: { allow: false } }).required(),
@@ -18,7 +15,6 @@ const loginSchema = Joi.object({
 const registerSchema = Joi.object({
     email: Joi.string().email({ tlds: { allow: false } }).required(),
     password: Joi.string().min(6).required(),
-    tenantSlug: Joi.string().min(2).max(50).required(),
     role: Joi.string().valid('admin', 'member').default('member')
 });
 
@@ -60,7 +56,7 @@ router.post('/login', async (req, res) => {
                 email: user.email,
                 role: user.role
             },
-            JWT_SECRET,
+            process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
 
@@ -87,11 +83,17 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// Register endpoint
-router.post('/register', async (req, res) => {
+// Admin signup endpoint - Create new company/tenant with admin user
+router.post('/signup', async (req, res) => {
     try {
-        // Validate request body
-        const { error, value } = registerSchema.validate(req.body);
+        // Validate request body for admin signup
+        const adminSignupSchema = Joi.object({
+            email: Joi.string().email({ tlds: { allow: false } }).required(),
+            password: Joi.string().min(6).required(),
+            companyName: Joi.string().min(2).max(100).required()
+        });
+
+        const { error, value } = adminSignupSchema.validate(req.body);
         if (error) {
             return res.status(400).json({
                 error: 'Validation error',
@@ -99,31 +101,47 @@ router.post('/register', async (req, res) => {
             });
         }
 
-        const { email, password, tenantSlug, role } = value;
+        const { email, password, companyName } = value;
 
-        // Check if tenant exists
-        const tenant = await Tenant.findOne({ slug: tenantSlug });
-        if (!tenant) {
-            return res.status(400).json({ error: 'Tenant not found' });
+        // Generate company slug from company name
+        const companySlug = companyName
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim();
+
+        // Check if tenant with this slug already exists
+        const existingTenant = await Tenant.findOne({ slug: companySlug });
+        if (existingTenant) {
+            return res.status(400).json({ error: 'Company name already exists. Please choose a different name.' });
         }
 
-        // Check if user already exists in this tenant
-        const existingUser = await User.findOne({ email, tenant: tenant._id });
+        // Check if user already exists globally
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ error: 'User already exists in this tenant' });
+            return res.status(400).json({ error: 'User already exists' });
         }
+
+        // Create new tenant
+        const tenant = new Tenant({
+            slug: companySlug,
+            name: companyName,
+            plan: 'free',
+            noteLimit: 3
+        });
+        await tenant.save();
 
         // Hash password
         const passwordHash = await bcrypt.hash(password, 10);
 
-        // Create user
+        // Create admin user
         const user = new User({
             tenant: tenant._id,
             email,
             passwordHash,
-            role
+            role: 'admin'
         });
-
         await user.save();
 
         // Populate tenant data
@@ -138,7 +156,7 @@ router.post('/register', async (req, res) => {
                 email: user.email,
                 role: user.role
             },
-            JWT_SECRET,
+            process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
 
@@ -156,11 +174,72 @@ router.post('/register', async (req, res) => {
                     plan: user.tenant.plan,
                     noteLimit: user.tenant.noteLimit
                 }
+            },
+            message: 'Company created successfully! You are now the admin.'
+        });
+
+    } catch (error) {
+        console.error('Admin signup error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Invite user endpoint (Admin only)
+router.post('/invite', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        // Validate request body
+        const { error, value } = registerSchema.validate(req.body);
+        if (error) {
+            return res.status(400).json({
+                error: 'Validation error',
+                details: error.details[0].message
+            });
+        }
+
+        const { email, password, role } = value;
+        const tenantId = req.user.tenantId; // Use admin's tenant
+
+        // Check if user already exists in this tenant
+        const existingUser = await User.findOne({ email, tenant: tenantId });
+        if (existingUser) {
+            return res.status(400).json({ error: 'User already exists in this tenant' });
+        }
+
+        // Hash password
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        // Create user
+        const user = new User({
+            tenant: tenantId,
+            email,
+            passwordHash,
+            role
+        });
+
+        await user.save();
+
+        // Populate tenant data
+        await user.populate('tenant', 'slug name plan noteLimit');
+
+        // Return user info (no token - they need to login separately)
+        res.status(201).json({
+            message: 'User invited successfully',
+            user: {
+                id: user._id,
+                email: user.email,
+                role: user.role,
+                tenant: {
+                    id: user.tenant._id,
+                    slug: user.tenant.slug,
+                    name: user.tenant.name,
+                    plan: user.tenant.plan,
+                    noteLimit: user.tenant.noteLimit
+                }
             }
         });
 
     } catch (error) {
-        console.error('Registration error:', error);
+        console.error('Invite user error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -206,7 +285,7 @@ export function authenticateToken(req, res, next) {
         return res.status(401).json({ error: 'Access token required' });
     }
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
         if (err) {
             return res.status(403).json({ error: 'Invalid or expired token' });
         }

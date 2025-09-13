@@ -80,6 +80,21 @@
     gap: 8px;
 }
 
+.adminBadge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 .tenantName {
     color: #4a5568;
     font-size: 13px;
@@ -570,6 +585,205 @@
     gap: 6px;
 }
 
+/* User Management Styles */
+.userSection {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    margin-top: 32px;
+}
+
+.userHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.userHeader h2 {
+    color: #2d3748;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.inviteButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.inviteButton:hover {
+    background: #5a6fd8;
+    transform: translateY(-1px);
+}
+
+.inviteForm {
+    padding: 24px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.formHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.formHeader h3 {
+    color: #2d3748;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    color: #a0aec0;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+    color: #718096;
+    background: #e2e8f0;
+}
+
+.formFields {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.emailInput,
+.passwordInput,
+.roleSelect {
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.emailInput:focus,
+.passwordInput:focus,
+.roleSelect:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.formActions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.cancelButton {
+    background: #e2e8f0;
+    color: #4a5568;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+    background: #cbd5e0;
+}
+
+.inviteSubmitButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #48bb78;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.inviteSubmitButton:hover {
+    background: #38a169;
+    transform: translateY(-1px);
+}
+
+.usersList {
+    padding: 24px;
+}
+
+.emptyUsers {
+    text-align: center;
+    color: #718096;
+    padding: 40px 20px;
+}
+
+.userCard {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+}
+
+.userCard:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #cbd5e0;
+}
+
+.userInfo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.userEmail {
+    color: #2d3748;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.userRole {
+    background: #e6f3ff;
+    color: #0066cc;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.userDate {
+    color: #718096;
+    font-size: 14px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .headerContent {
@@ -615,6 +829,16 @@
     .noteMeta {
         flex-direction: column;
         gap: 8px;
+        align-items: flex-start;
+    }
+
+    .formFields {
+        grid-template-columns: 1fr;
+    }
+
+    .userInfo {
+        flex-direction: column;
+        gap: 12px;
         align-items: flex-start;
     }
 }

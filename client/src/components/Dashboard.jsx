@@ -11,10 +11,16 @@ export default function Dashboard() {
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newNote, setNewNote] = useState({ title: '', content: '' });
     const [meta, setMeta] = useState({ count: 0, limit: 3, plan: 'free', canCreateMore: true });
+    const [users, setUsers] = useState([]);
+    const [showInviteForm, setShowInviteForm] = useState(false);
+    const [newUser, setNewUser] = useState({ email: '', password: '', role: 'member' });
 
     useEffect(() => {
         loadNotes();
-    }, []);
+        if (user?.role === 'admin') {
+            loadUsers();
+        }
+    }, [user]);
 
     const loadNotes = async () => {
         try {
@@ -26,6 +32,15 @@ export default function Dashboard() {
             setError('Failed to load notes');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadUsers = async () => {
+        try {
+            const response = await apiService.getTenantUsers(user.tenant.slug);
+            setUsers(response.users);
+        } catch (err) {
+            console.error('Failed to load users:', err);
         }
     };
 
@@ -59,6 +74,19 @@ export default function Dashboard() {
             loadNotes(); // Reload to get updated meta
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to upgrade');
+        }
+    };
+
+    const handleInviteUser = async (e) => {
+        e.preventDefault();
+        try {
+            const result = await apiService.inviteUser(newUser.email, newUser.password, newUser.role);
+            setNewUser({ email: '', password: '', role: 'member' });
+            setShowInviteForm(false);
+            loadUsers(); // Reload users list
+            alert('User invited successfully!');
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to invite user');
         }
     };
 
@@ -104,13 +132,23 @@ export default function Dashboard() {
                                         {user.tenant.plan.toUpperCase()}
                                     </span>
                                 </div>
+                                {user.role === 'admin' && (
+                                    <div className={styles.adminBadge}>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" />
+                                            <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" />
+                                            <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" />
+                                        </svg>
+                                        Admin Access
+                                    </div>
+                                )}
                             </div>
                             <div className={styles.userRole}>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                                     <path d="M20 21V19A4 4 0 0 0 16 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" strokeWidth="2" />
                                     <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
                                 </svg>
-                                {user.role}
+                                {user.role === 'admin' ? 'Administrator' : 'Member'}
                             </div>
                         </div>
                         <button onClick={logout} className={styles.logoutButton}>
@@ -176,7 +214,7 @@ export default function Dashboard() {
                             </svg>
                         </div>
                         <div className={styles.statContent}>
-                            <h3>{meta.canCreateMore ? '∞' : meta.limit - meta.count}</h3>
+                            <h3>{meta.plan === 'pro' ? '∞' : Math.max(0, meta.limit - meta.count)}</h3>
                             <p>Notes Remaining</p>
                         </div>
                     </div>
@@ -339,6 +377,106 @@ export default function Dashboard() {
                         )}
                     </div>
                 </div>
+
+                {/* User Management Section - Admin Only */}
+                {user?.role === 'admin' && (
+                    <div className={styles.userSection}>
+                        <div className={styles.userHeader}>
+                            <h2>User Management</h2>
+                            <button
+                                onClick={() => setShowInviteForm(!showInviteForm)}
+                                className={styles.inviteButton}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" strokeWidth="2" />
+                                    <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
+                                    <path d="M20 8L16 12L20 16" stroke="currentColor" strokeWidth="2" />
+                                    <path d="M16 12H8" stroke="currentColor" strokeWidth="2" />
+                                </svg>
+                                {showInviteForm ? 'Cancel' : 'Invite User'}
+                            </button>
+                        </div>
+
+                        {showInviteForm && (
+                            <form onSubmit={handleInviteUser} className={styles.inviteForm}>
+                                <div className={styles.formHeader}>
+                                    <h3>Invite New User</h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowInviteForm(false)}
+                                        className={styles.closeButton}
+                                    >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                            <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2" />
+                                            <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div className={styles.formFields}>
+                                    <input
+                                        type="email"
+                                        placeholder="User email"
+                                        value={newUser.email}
+                                        onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                                        required
+                                        className={styles.emailInput}
+                                    />
+                                    <input
+                                        type="password"
+                                        placeholder="Temporary password"
+                                        value={newUser.password}
+                                        onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                                        required
+                                        minLength="6"
+                                        className={styles.passwordInput}
+                                    />
+                                    <select
+                                        value={newUser.role}
+                                        onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                                        className={styles.roleSelect}
+                                    >
+                                        <option value="member">Member</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                                <div className={styles.formActions}>
+                                    <button type="button" onClick={() => setShowInviteForm(false)} className={styles.cancelButton}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className={styles.inviteSubmitButton}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                            <path d="M16 21V19A4 4 0 0 0 12 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" strokeWidth="2" />
+                                            <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
+                                            <path d="M20 8L16 12L20 16" stroke="currentColor" strokeWidth="2" />
+                                            <path d="M16 12H8" stroke="currentColor" strokeWidth="2" />
+                                        </svg>
+                                        Send Invitation
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
+                        <div className={styles.usersList}>
+                            {users.length === 0 ? (
+                                <div className={styles.emptyUsers}>
+                                    <p>No users found</p>
+                                </div>
+                            ) : (
+                                users.map((user) => (
+                                    <div key={user._id} className={styles.userCard}>
+                                        <div className={styles.userInfo}>
+                                            <div className={styles.userEmail}>{user.email}</div>
+                                            <div className={styles.userRole}>{user.role}</div>
+                                            <div className={styles.userDate}>
+                                                Joined: {new Date(user.createdAt).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );
