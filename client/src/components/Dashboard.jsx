@@ -4,7 +4,7 @@ import { apiService } from '../services/apiService';
 import styles from './Dashboard.module.css';
 
 export default function Dashboard() {
-    const { user, logout } = useAuth();
+    const { user, logout, refreshUser } = useAuth();
     const [notes, setNotes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -95,7 +95,12 @@ export default function Dashboard() {
         try {
             await apiService.upgradeTenant(user.tenant.slug);
             alert('Successfully upgraded to Pro plan!');
-            loadNotes(); // Reload to get updated meta
+
+            // Refresh user data to update tenant plan
+            await refreshUser();
+
+            // Reload notes to get updated meta
+            loadNotes();
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to upgrade');
         }

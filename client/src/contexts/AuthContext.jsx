@@ -92,13 +92,27 @@ export function AuthProvider({ children }) {
         setUser(null);
     };
 
+    const refreshUser = async () => {
+        try {
+            const userData = await apiService.getCurrentUser();
+            setUser(userData.user);
+            return { success: true };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.error || 'Failed to refresh user data'
+            };
+        }
+    };
+
     const value = {
         user,
         loading,
         login,
         adminSignup,
         inviteUser,
-        logout
+        logout,
+        refreshUser
     };
 
     return (
