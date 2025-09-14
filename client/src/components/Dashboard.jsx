@@ -10,6 +10,8 @@ export default function Dashboard() {
     const [error, setError] = useState('');
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newNote, setNewNote] = useState({ title: '', content: '' });
+    const [editingNote, setEditingNote] = useState(null);
+    const [editNote, setEditNote] = useState({ title: '', content: '' });
     const [meta, setMeta] = useState({ count: 0, limit: 3, plan: 'free', canCreateMore: true });
     const [users, setUsers] = useState([]);
     const [showInviteForm, setShowInviteForm] = useState(false);
@@ -65,6 +67,28 @@ export default function Dashboard() {
                 setError('Failed to delete note');
             }
         }
+    };
+
+    const handleEditNote = (note) => {
+        setEditingNote(note._id);
+        setEditNote({ title: note.title, content: note.content });
+    };
+
+    const handleUpdateNote = async (e) => {
+        e.preventDefault();
+        try {
+            await apiService.updateNote(editingNote, editNote.title, editNote.content);
+            setEditingNote(null);
+            setEditNote({ title: '', content: '' });
+            loadNotes();
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to update note');
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setEditingNote(null);
+        setEditNote({ title: '', content: '' });
     };
 
     const handleUpgrade = async () => {
@@ -336,42 +360,103 @@ export default function Dashboard() {
                         ) : (
                             notes.map((note) => (
                                 <div key={note._id} className={styles.noteCard}>
-                                    <div className={styles.noteHeader}>
-                                        <h3>{note.title}</h3>
-                                        <button
-                                            onClick={() => handleDeleteNote(note._id)}
-                                            className={styles.deleteButton}
-                                            title="Delete note"
-                                        >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                                <polyline points="3,6 5,6 21,6" stroke="currentColor" strokeWidth="2" />
-                                                <path d="M19,6V20A2,2 0 0,1 17,22H7A2,2 0 0,1 5,20V6M8,6V4A2,2 0 0,1 10,2H14A2,2 0 0,1 16,4V6" stroke="currentColor" strokeWidth="2" />
-                                                <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" strokeWidth="2" />
-                                                <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" strokeWidth="2" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    <div className={styles.noteContent}>
-                                        <p>{note.content || 'No content'}</p>
-                                    </div>
-                                    <div className={styles.noteMeta}>
-                                        <div className={styles.noteAuthor}>
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                                <path d="M20 21V19A4 4 0 0 0 16 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" strokeWidth="2" />
-                                                <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
-                                            </svg>
-                                            {note.author_email}
-                                        </div>
-                                        <div className={styles.noteDate}>
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2" />
-                                                <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" />
-                                                <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" />
-                                                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" />
-                                            </svg>
-                                            {new Date(note.createdAt).toLocaleDateString()}
-                                        </div>
-                                    </div>
+                                    {editingNote === note._id ? (
+                                        <form onSubmit={handleUpdateNote} className={styles.editForm}>
+                                            <div className={styles.formHeader}>
+                                                <h3>Edit Note</h3>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleCancelEdit}
+                                                    className={styles.closeButton}
+                                                >
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                                        <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2" />
+                                                        <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div className={styles.formFields}>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Note title"
+                                                    value={editNote.title}
+                                                    onChange={(e) => setEditNote({ ...editNote, title: e.target.value })}
+                                                    required
+                                                    className={styles.titleInput}
+                                                />
+                                                <textarea
+                                                    placeholder="Write your note content here..."
+                                                    value={editNote.content}
+                                                    onChange={(e) => setEditNote({ ...editNote, content: e.target.value })}
+                                                    rows="6"
+                                                    className={styles.contentInput}
+                                                />
+                                            </div>
+                                            <div className={styles.formActions}>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleCancelEdit}
+                                                    className={styles.cancelButton}
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button type="submit" className={styles.saveButton}>
+                                                    Save Changes
+                                                </button>
+                                            </div>
+                                        </form>
+                                    ) : (
+                                        <>
+                                            <div className={styles.noteHeader}>
+                                                <h3>{note.title}</h3>
+                                                <div className={styles.noteActions}>
+                                                    <button
+                                                        onClick={() => handleEditNote(note)}
+                                                        className={styles.editButton}
+                                                        title="Edit note"
+                                                    >
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                                            <path d="M11 4H4A2 2 0 0 0 2 6V20A2 2 0 0 0 4 22H18A2 2 0 0 0 20 20V13" stroke="currentColor" strokeWidth="2" />
+                                                            <path d="M18.5 2.5A2.121 2.121 0 0 1 21 5L12 14L8 15L9 11L18.5 2.5Z" stroke="currentColor" strokeWidth="2" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteNote(note._id)}
+                                                        className={styles.deleteButton}
+                                                        title="Delete note"
+                                                    >
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                                            <polyline points="3,6 5,6 21,6" stroke="currentColor" strokeWidth="2" />
+                                                            <path d="M19,6V20A2,2 0 0,1 17,22H7A2,2 0 0,1 5,20V6M8,6V4A2,2 0 0,1 10,2H14A2,2 0 0,1 16,4V6" stroke="currentColor" strokeWidth="2" />
+                                                            <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" strokeWidth="2" />
+                                                            <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" strokeWidth="2" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className={styles.noteContent}>
+                                                <p>{note.content || 'No content'}</p>
+                                            </div>
+                                            <div className={styles.noteMeta}>
+                                                <div className={styles.noteAuthor}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M20 21V19A4 4 0 0 0 16 15H8A4 4 0 0 0 4 19V21" stroke="currentColor" strokeWidth="2" />
+                                                        <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" />
+                                                    </svg>
+                                                    {note.author_email}
+                                                </div>
+                                                <div className={styles.noteDate}>
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2" />
+                                                        <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" />
+                                                        <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" />
+                                                        <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" />
+                                                    </svg>
+                                                    {new Date(note.createdAt).toLocaleDateString()}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             ))
                         )}

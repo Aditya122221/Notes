@@ -532,6 +532,38 @@
     margin-bottom: 12px;
 }
 
+.noteActions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.editButton {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.editButton:hover {
+    background: #5a67d8;
+    transform: translateY(-1px);
+}
+
+.editForm {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+}
+
 .noteHeader h3 {
     color: #2d3748;
     font-size: 18px;
