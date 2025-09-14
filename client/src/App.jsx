@@ -15,14 +15,38 @@ function ProtectedRoute({ children }) {
   return user ? children : <Navigate to="/login" />;
 }
 
+function AuthGuard({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
+
+  return user ? <Navigate to="/dashboard" /> : children;
+}
+
 function App() {
   return (
     <AuthProvider>
       <Router>
         <div className="app">
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<AdminSignup />} />
+            <Route
+              path="/login"
+              element={
+                <AuthGuard>
+                  <Login />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                <AuthGuard>
+                  <AdminSignup />
+                </AuthGuard>
+              }
+            />
             <Route
               path="/dashboard"
               element={
