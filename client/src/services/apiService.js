@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://notes-yuyr.onrender.com';
+const API_BASE_URL = 'https://notes-yuyr.onrender.com/app';
 
 class ApiService {
     constructor() {
